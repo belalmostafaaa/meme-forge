@@ -7,12 +7,11 @@
 ## Features
 
 - Upload and edit images with Fabric.js canvas
-- Add meme captions (separated from the image content)
+- Add meme captions
 - Real-time collaboration using WebSockets
 - Submit memes to a shared gallery
 - Vote on the funniest memes
-- Edit submitted memes collaboratively
-- In-page feedback messages (no annoying popups!)
+- Edit submitted memes collaboratively with your friends
 
 ---
 
