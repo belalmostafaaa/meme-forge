@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Edit Meme</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="icon.png">
+</head>
+<body>
+  <div class="container">
+    <h1>Editing Meme Collaboratively</h1>
+    <canvas id="c" width="600" height="500"></canvas>
+    <br>
+    <input type="text" id="textInput" placeholder="Add text">
+    <button id="addText">Add Text</button>
+    <button id="clearCanvas">Clear</button>
+    <a href="gallery.html" class="nav-link">← Back to Gallery</a>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.2.4/fabric.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const canvas = new fabric.Canvas('c', { backgroundColor: '#000' });
+
+    // Get meme ID from URL
+    const params = new URLSearchParams(window.location.search);
+    const memeId = params.get('id');
+
+    // Join meme room
+    socket.emit('meme:join', memeId);
+
+    // Request meme data
+    socket.emit('meme:request', memeId);
+    socket.on('meme:data', (data) => {
+      if (!data || !data.json) {
+        alert('Failed to load meme data.');
+        return;
+      }
+
+      canvas.loadFromJSON(data.json, () => {
+        canvas.renderAll();
+
+        // Re-add image from base64 if present
+        if (data.image) {
+          fabric.Image.fromURL(data.image, (img) => {
+            img.scaleToWidth(400);
+            canvas.add(img);
+            canvas.sendToBack(img);
+          });
+        }
+
+        // Add caption
+        if (data.caption) {
+          const caption = new fabric.Textbox(data.caption, {
+            left: 100,
+            top: 450,
+            fill: '#ffffff',
+            fontSize: 24,
+            fontWeight: 'bold',
+            fontFamily: 'Impact',
+            stroke: '#000',
+            strokeWidth: 1.5,
+            textAlign: 'center'
+          });
+          canvas.add(caption);
+        }
+      });
+    });
+
+    // Sync edits to other clients
+    function syncCanvas() {
+      const json = canvas.toJSON(['src']);
+      const caption = getCaptionText();
+      socket.emit('meme:edit', { id: memeId, json, caption });
+    }
+
+    canvas.on('object:added', syncCanvas);
+    canvas.on('object:modified', syncCanvas);
+
+    socket.on('meme:update', ({ json, caption }) => {
+      canvas.loadFromJSON(json, () => {
+        canvas.renderAll();
+
+        if (caption) {
+          const captionObj = new fabric.Textbox(caption, {
+            left: 100,
+            top: 450,
+            fill: '#ffffff',
+            fontSize: 24,
+            fontWeight: 'bold',
+            fontFamily: 'Impact',
+            stroke: '#000',
+            strokeWidth: 1.5,
+            textAlign: 'center'
+          });
+          canvas.add(captionObj);
+        }
+      });
+    });
+
+    function getCaptionText() {
+      const textboxes = canvas.getObjects('textbox');
+      const bottomText = textboxes.reduce((prev, curr) => {
+        return (prev.top || 0) > (curr.top || 0) ? prev : curr;
+      }, {});
+      return bottomText.text || '';
+    }
+
+    // UI Controls
+    document.getElementById('addText').onclick = () => {
+      const textValue = document.getElementById('textInput').value;
+      if (!textValue.trim()) return;
+
+      const text = new fabric.Textbox(textValue, {
+        left: 100,
+        top: 450,
+        fill: '#ffffff',
+        fontSize: 24,
+        fontWeight: 'bold',
+        fontFamily: 'Impact',
+        stroke: '#000',
+        strokeWidth: 1.5,
+        textAlign: 'center'
+      });
+
+      canvas.add(text);
+      document.getElementById('textInput').value = '';
+    };
+
+    document.getElementById('clearCanvas').onclick = () => {
+      canvas.clear();
+      canvas.backgroundColor = '#000';
+      syncCanvas();
+    };
+  </script>
+</body>
+</html>

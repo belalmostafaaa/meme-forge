@@ -1,0 +1,165 @@
+body {
+  margin: 0;
+  background: #1e1e1e;
+  color: #f0f0f0;
+  font-family: 'Rubik', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1100px;
+  width: 95%;
+  padding: 20px;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background-color: #2c2c2c;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #00ffd5;
+}
+
+.main {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+.canvas-container {
+  border: 2px dashed #00ffd5;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  justify-content: center;
+  align-items: stretch;
+  max-width: 400px;
+  width: 100%;
+}
+
+.upload-btn {
+  background: #00ffd5;
+  padding: 10px;
+  border: none;
+  text-align: center;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #1e1e1e;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.upload-btn:hover {
+  background: #00bfa5;
+}
+
+input[type="text"] {
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  background-color: #333;
+  color: #fff;
+}
+
+button {
+  padding: 10px;
+  border-radius: 8px;
+  background-color: #00ffd5;
+  color: #1e1e1e;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background-color: #00bfa5;
+}
+
+.vote-display {
+  font-size: 1.2em;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+}
+
+.meme-card {
+  background-color: #333;
+  border-radius: 10px;
+  overflow: hidden;
+  padding: 10px;
+  width: 250px;
+  text-align: center;
+  box-shadow: 0 0 10px #000;
+}
+
+.meme-card img {
+  width: 100%;
+  border-radius: 8px;
+}
+
+.vote-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.nav-link {
+  display: inline-block;
+  margin-top: 10px;
+  text-decoration: none;
+  color: #00ffd5;
+  font-weight: bold;
+  transition: color 0.3s;
+}
+.nav-link:hover {
+  color: #00bfa5;
+}
+
+.success-message {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #d1f7d1;
+  color: #155724;
+  border: 1px solid #b2e2b2;
+  border-radius: 5px;
+  font-weight: bold;
+  transition: opacity 0.3s ease;
+}
+
+.btn {
+  display: inline-block;
+  padding: 10px 20px;
+  color: #0ff;
+
+  border: 1px solid #0ff;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: 0.3s ease-in-out;
+}
+
+.btn:hover {
+  background-color: #0ff;
+  color: #000;
+  box-shadow: 0 0 15px #0ff, 0 0 30px #0ff inset;
+}

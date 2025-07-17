@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Meme Gallery</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="icon.png">
+</head>
+<body>
+  <div class="container">
+    <h1>Meme Gallery </h1>
+    <div id="gallery" class="gallery"></div>
+    <a href="index.html" class="btn">← Back to Editor</a>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script> <!-- I used socket.io here -->
+  <script>
+    const socket = io();
+
+    async function loadGallery() {
+      const res = await fetch('/gallery-data');
+      const memes = await res.json();
+
+      const gallery = document.getElementById('gallery');
+      gallery.innerHTML = '';
+
+      memes.forEach(meme => {
+        const card = document.createElement('div');
+        card.className = 'meme-card';
+        card.innerHTML = `
+  <img src="${meme.image}" alt="Meme Image" />
+  <div class="caption">${meme.caption || ''}</div>
+  <div class="vote-row">
+    <button onclick="vote('${meme.id}')"> Vote</button>
+    <span id="votes-${meme.id}">${meme.votes}</span>
+  </div>
+  <a href="edit.html?id=${meme.id}" class="nav-link"> Edit Meme</a>
+`;
+        gallery.appendChild(card);
+      });
+    }
+
+    function vote(id) {
+      socket.emit('meme:vote', id);
+    }
+
+    socket.on('meme:vote:update', ({ id, votes }) => {
+      const el = document.getElementById(`votes-${id}`);
+      if (el) el.textContent = votes;
+    });
+
+    loadGallery();
+  </script>
+</body>
+</html>
