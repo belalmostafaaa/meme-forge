@@ -3,7 +3,10 @@ const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 
-app.use(express.static('public'));
+const path = require('path');
+
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
 
 const memes = [];
 
@@ -19,12 +22,11 @@ io.on('connection', (socket) => {
   });
 
   socket.on('meme:request', (memeId) => {
-  const meme = memes.find(m => m.id === memeId);
-  if (meme) {
-    socket.emit('meme:data', meme); 
-  }
-});
-
+    const meme = memes.find(m => m.id === memeId);
+    if (meme) {
+      socket.emit('meme:data', meme); 
+    }
+  });
 
   socket.on('meme:edit', ({ id, json, caption }) => {
     const meme = memes.find(m => m.id === id);
@@ -60,8 +62,7 @@ io.on('connection', (socket) => {
   });
 });
 
-http.listen(3000, () => {
-  console.log('Server running at http://localhost:3000');
+const PORT = process.env.PORT || 3000;
+http.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
-
-/* I added those emits for clarifying if there is any issues, it would be shown in the terminal */
