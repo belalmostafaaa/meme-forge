@@ -1,0 +1,23 @@
+{
+  "name": "meme-collab-app",
+  "version": "1.0.1",
+  "description": "A real-time collaborative meme editor with Express and Socket.io.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "meme",
+    "collaboration",
+    "express",
+    "socket.io",
+    "fabricjs",
+    "canvas"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2"
+  }
+}
