@@ -1,20 +1,32 @@
 const express = require('express');
 const http = require('http');
-const { Server } = require('socket.io');
+const socketIO = require('socket.io');
 const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = socketIO(server);
 
-// Serve static files
+const PORT = process.env.PORT || 3000;
+
+// Serve static files from the "public" directory
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Store the latest canvas state
+let canvasState = null;
 
 io.on('connection', (socket) => {
   console.log('A user connected');
 
+  // Send the current canvas state to the new user
+  if (canvasState) {
+    socket.emit('canvas:update', canvasState);
+  }
+
+  // When receiving a canvas update from a user
   socket.on('canvas:update', (data) => {
-    socket.broadcast.emit('canvas:update', data);
+    canvasState = data; // Save the latest version
+    socket.broadcast.emit('canvas:update', data); // Send it to all other users
   });
 
   socket.on('disconnect', () => {
@@ -22,8 +34,7 @@ io.on('connection', (socket) => {
   });
 });
 
-
-const PORT = process.env.PORT || 8080;
+// Start the server
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
