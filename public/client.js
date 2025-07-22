@@ -1,4 +1,4 @@
-const socket = io();
+const socket = io(window.location.origin);
 const canvas = new fabric.Canvas('c', { backgroundColor: '#000' });
 
 let voteCount = 0;
