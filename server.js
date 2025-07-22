@@ -7,28 +7,33 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static(path.join(__dirname, 'public'))); // public folder contains index.html, client.js
+// Middleware
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-let currentCanvasState = null;
+// Socket.IO for real-time updates
+let canvasData = null; // Shared canvas state
 
 io.on('connection', (socket) => {
-  console.log(' A user connected');
+  console.log('A user connected');
 
-  if (currentCanvasState) {
-    socket.emit('canvas:update', currentCanvasState);
+  // Send current canvas state to new user
+  if (canvasData) {
+    socket.emit('canvas:update', canvasData);
   }
 
   socket.on('canvas:update', (data) => {
-    currentCanvasState = data;
+    canvasData = data;
     socket.broadcast.emit('canvas:update', data);
   });
 
   socket.on('disconnect', () => {
-    console.log(' A user disconnected');
+    console.log('A user disconnected');
   });
 });
 
+// Start server
 const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
-  console.log(` Server listening on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
