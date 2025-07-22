@@ -1,8 +1,6 @@
 const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
-const mongoose = require('mongoose');
-const Meme = require('./Models/Meme');
 const path = require('path');
 
 const app = express();
@@ -12,78 +10,64 @@ const io = socketIO(server);
 app.use(express.json());
 app.use(express.static('public'));
 
-const mongoURI = 'mongodb+srv://memeforge:<password>@cluster0.mongodb.net/memeforge?retryWrites=true&w=majority';
+const memes = [];
 
-mongoose.connect(mongoURI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => console.log('✅ Connected to MongoDB Atlas'))
-  .catch(err => console.error('❌ MongoDB connection error:', err));
-
-// Submit new meme
-app.post('/submit', async (req, res) => {
-  const { url, caption, json } = req.body;
-  try {
-    const meme = new Meme({ url, caption, json, votes: 0 });
-    await meme.save();
-    io.emit('newMeme', meme); // Notify all clients
-    res.status(200).send('Meme submitted!');
-  } catch (err) {
-    res.status(500).send('Failed to submit meme');
-  }
+// Routes
+app.post('/submit', (req, res) => {
+  const { url, caption } = req.body;
+  const newMeme = {
+    id: Date.now().toString(),
+    url,
+    caption,
+    votes: 0
+  };
+  memes.push(newMeme);
+  io.emit('newMeme', newMeme); // Notify all clients
+  res.status(200).send('Meme submitted!');
 });
 
-// Get gallery memes
-app.get('/gallery-data', async (req, res) => {
-  try {
-    const memes = await Meme.find();
-    res.json(memes);
-  } catch (err) {
-    res.status(500).send('Error loading memes');
-  }
+app.get('/gallery-data', (req, res) => {
+  res.json(memes);
 });
 
-// Socket.IO for real-time
+// WebSocket connection
 io.on('connection', (socket) => {
-  console.log('🟢 A user connected:', socket.id);
+  console.log('A user connected:', socket.id);
 
   socket.on('meme:join', (memeId) => {
     socket.join(memeId);
   });
 
-  socket.on('meme:edit', async ({ id, json, caption }) => {
-    try {
-      const meme = await Meme.findById(id);
-      if (meme) {
-        meme.json = json;
-        meme.caption = caption;
-        await meme.save();
-        socket.to(id).emit('meme:update', { json, caption });
-      }
-    } catch (err) {
-      console.error('Failed to update meme:', err);
+  socket.on('meme:request', (memeId) => {
+    const meme = memes.find(m => m.id === memeId);
+    if (meme) {
+      socket.emit('meme:data', meme);
     }
   });
 
-  socket.on('meme:vote', async (id) => {
-    try {
-      const meme = await Meme.findById(id);
-      if (meme) {
-        meme.votes += 1;
-        await meme.save();
-        io.emit('meme:vote:update', { id: meme._id, votes: meme.votes });
-      }
-    } catch (err) {
-      console.error('Failed to vote on meme:', err);
+  socket.on('meme:edit', ({ id, json, caption }) => {
+    const meme = memes.find(m => m.id === id);
+    if (meme) {
+      meme.json = json;
+      meme.caption = caption;
+      socket.to(id).emit('meme:update', { json, caption });
+    }
+  });
+
+  socket.on('meme:vote', (id) => {
+    const meme = memes.find(m => m.id === id);
+    if (meme) {
+      meme.votes += 1;
+      io.emit('meme:vote:update', { id: meme.id, votes: meme.votes });
     }
   });
 
   socket.on('disconnect', () => {
-    console.log('🔴 A user disconnected:', socket.id);
+    console.log('A user disconnected:', socket.id);
   });
 });
 
 const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
