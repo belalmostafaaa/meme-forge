@@ -16,25 +16,29 @@ socket.on('canvas:update', (data) => {
   canvas.loadFromJSON(data, canvas.renderAll.bind(canvas));
 });
 
-document.getElementById('imgInput').addEventListener('change', (e) => {
+document.getElementById('imageUpload').addEventListener('change', function (e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
   const reader = new FileReader();
-  reader.onload = function (f) {
-    fabric.Image.fromURL(f.target.result, (img) => {
-      img.scaleToWidth(canvas.getWidth());
-      img.scaleToHeight(canvas.getHeight());
+
+  reader.onload = function (event) {
+    fabric.Image.fromURL(event.target.result, function (img) {
       img.set({
-        left: 0,
-        top: 0,
-        selectable: false,
-        hasBorders: false,
-        hasControls: false,
-        evented: false
+        left: 100,
+        top: 100,
+        scaleX: 0.5,
+        scaleY: 0.5
       });
-      canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
+      canvas.add(img);
+      canvas.renderAll();
+      syncCanvas(); // Ensure update is broadcasted
     });
   };
-  reader.readAsDataURL(e.target.files[0]);
+
+  reader.readAsDataURL(file); // 🔥 This converts the image to base64
 });
+
 
 
 document.getElementById('addText').onclick = () => {
