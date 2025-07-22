@@ -1,4 +1,12 @@
 {
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "fabric": "^5.3.0" // or whatever version you're using
+  }
   "name": "meme-collab-app",
   "version": "1.0.1",
   "description": "A real-time collaborative meme editor with Express and Socket.io.",
