@@ -18,23 +18,28 @@
         <p id="captionDisplay" class="caption-output"></p>
       </div>
 
-      <div class="controls">  <!-- for uploading mems (I hope they would be funny memes) -->
-        <label class="upload-btn">
+      <div class="controls">
+        <!-- Upload image -->
+        <label class="upload-btn" id="uploadLabel">
           Upload Image
-          <input type="file" id="imgInput" hidden>
+          <input type="file" id="imgInput" hidden accept="image/*">
         </label>
 
-        <input type="text" id="textInput" placeholder="Add meme text...">  <!-- adding the text as a caption (It took a lot to make it as a caption) -->
-        <button id="addText"> Add Text</button>
+        <!-- Add text caption -->
+        <input type="text" id="textInput" placeholder="Add meme text...">
+        <button id="addText">Add Text</button>
 
-        <button id="submitMeme"> Submit Meme to Gallery</button> <!-- submitting the meme -->
+        <!-- Submit meme -->
+        <button id="submitMeme">Submit Meme to Gallery</button>
         <p id="submitMessage" class="success-message" style="display: none;"></p>
 
+        <!-- View gallery -->
+        <a href="gallery.html" class="nav-link">View Meme Gallery</a>
 
-        <a href="gallery.html" class="nav-link"> View Meme Gallery</a>
+        <!-- Clear canvas -->
+        <button id="clearCanvas">Clear</button>
 
-        <button id="clearCanvas"> Clear</button>
-
+        <!-- Vote display -->
         <div class="vote-display">
            Votes: <span id="voteCount">0</span>
         </div>
@@ -42,6 +47,7 @@
     </div>
   </div>
 
+  <!-- Fabric.js for canvas + Socket.IO for realtime sync -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script src="client.js"></script>
