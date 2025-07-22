@@ -1,21 +1,25 @@
 const socket = io();
 const canvas = new fabric.Canvas('c', { backgroundColor: '#fff' });
 
-// Sync canvas on object add or modify
+/* ========== Efficient Canvas Sync with Debounce ========== */
+let syncTimeout;
 function syncCanvas() {
-  const json = canvas.toJSON();
-  socket.emit('canvas:update', json);
+  clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(() => {
+    const json = canvas.toJSON();
+    socket.emit('canvas:update', json);
+  }, 300); // 300ms delay to reduce traffic
 }
 
 canvas.on('object:added', syncCanvas);
 canvas.on('object:modified', syncCanvas);
 
-// Receive canvas updates from server
+/* ========== Receive Canvas Updates from Server ========== */
 socket.on('canvas:update', (data) => {
   canvas.loadFromJSON(data, canvas.renderAll.bind(canvas));
 });
 
-// Upload and display image
+/* ========== Handle Image Uploads ========== */
 document.getElementById('imgInput').addEventListener('change', function (e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -23,19 +27,32 @@ document.getElementById('imgInput').addEventListener('change', function (e) {
   const reader = new FileReader();
   reader.onload = function (f) {
     fabric.Image.fromURL(f.target.result, function (img) {
+      // Auto scale to fit canvas if image is too large
+      const scaleFactor = Math.min(
+        canvas.width / img.width,
+        canvas.height / img.height,
+        1
+      );
       img.set({
-        left: 100,
-        top: 100,
-        scaleX: 0.5,
-        scaleY: 0.5,
+        left: canvas.width / 2 - (img.width * scaleFactor) / 2,
+        top: canvas.height / 2 - (img.height * scaleFactor) / 2,
+        scaleX: scaleFactor,
+        scaleY: scaleFactor,
+        selectable: true,
       });
       canvas.add(img);
+      canvas.setActiveObject(img);
+      canvas.renderAll();
+      syncCanvas(); // Immediate sync
     }, { crossOrigin: 'anonymous' });
+  };
+  reader.onerror = function () {
+    alert("Failed to read the image file.");
   };
   reader.readAsDataURL(file);
 });
 
-// Add text to canvas
+/* ========== Add Text to Canvas ========== */
 document.getElementById('addText').addEventListener('click', function () {
   const text = document.getElementById('textInput').value.trim();
   if (!text) return;
@@ -48,23 +65,24 @@ document.getElementById('addText').addEventListener('click', function () {
     fontFamily: 'Rubik',
   });
   canvas.add(textObj);
+  canvas.setActiveObject(textObj);
+  syncCanvas();
 });
 
-// Clear canvas
+/* ========== Clear Canvas ========== */
 document.getElementById('clearCanvas').addEventListener('click', function () {
   canvas.clear();
   canvas.setBackgroundColor('#fff', canvas.renderAll.bind(canvas));
   syncCanvas();
 });
 
-// Voting (placeholder logic)
+/* ========== Voting System (Simple Local Logic) ========== */
 let voteCount = 0;
 document.getElementById('submitMeme').addEventListener('click', () => {
   voteCount++;
   document.getElementById('voteCount').innerText = voteCount;
   document.getElementById('submitMessage').style.display = 'block';
   document.getElementById('submitMessage').innerText = 'Meme submitted!';
-
   setTimeout(() => {
     document.getElementById('submitMessage').style.display = 'none';
   }, 2000);
