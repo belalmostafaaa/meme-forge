@@ -2,20 +2,37 @@ const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
-
+const fs = require('fs');
 const path = require('path');
 
-// Serve static files from the 'public' directory
+// Serve static files from 'public'
 app.use(express.static(path.join(__dirname, 'public')));
 
-const memes = [];
+const memesFilePath = path.join(__dirname, 'memes.json');
 
+// Load memes from file
+let memes = [];
+try {
+  const data = fs.readFileSync(memesFilePath, 'utf8');
+  memes = JSON.parse(data);
+} catch (err) {
+  console.error('Failed to load memes.json:', err.message);
+}
+
+// GET: Gallery Data
 app.get('/gallery-data', (req, res) => {
   res.json(memes.map(({ id, caption, image, votes }) => ({ id, caption, image, votes })));
 });
 
+// Helper to save memes to file
+function saveMemesToFile() {
+  fs.writeFile(memesFilePath, JSON.stringify(memes, null, 2), (err) => {
+    if (err) console.error('Error saving memes:', err.message);
+  });
+}
+
 io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
+  console.log('User connected:', socket.id);
 
   socket.on('meme:join', (memeId) => {
     socket.join(memeId);
@@ -23,9 +40,7 @@ io.on('connection', (socket) => {
 
   socket.on('meme:request', (memeId) => {
     const meme = memes.find(m => m.id === memeId);
-    if (meme) {
-      socket.emit('meme:data', meme); 
-    }
+    if (meme) socket.emit('meme:data', meme);
   });
 
   socket.on('meme:edit', ({ id, json, caption }) => {
@@ -33,6 +48,7 @@ io.on('connection', (socket) => {
     if (meme) {
       meme.json = json;
       meme.caption = caption;
+      saveMemesToFile();
       socket.to(id).emit('meme:update', { json, caption });
     }
   });
@@ -50,6 +66,7 @@ io.on('connection', (socket) => {
       votes: 0
     };
     memes.push(newMeme);
+    saveMemesToFile();
     console.log('Meme submitted:', newMeme.id);
   });
 
@@ -57,11 +74,13 @@ io.on('connection', (socket) => {
     const meme = memes.find(m => m.id === id);
     if (meme) {
       meme.votes += 1;
+      saveMemesToFile();
       io.emit('meme:vote:update', { id: meme.id, votes: meme.votes });
     }
   });
 });
 
+// Start server
 const PORT = process.env.PORT || 8080;
 http.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
