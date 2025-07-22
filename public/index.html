@@ -3,48 +3,38 @@
 <head>
   <meta charset="UTF-8">
   <title>Meme Forge</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/png" href="icon.png">
+  <style>
+    body {
+      background-color: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    canvas {
+      border: 2px solid white;
+      margin-top: 10px;
+    }
+    .controls {
+      margin: 10px;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Meme Forge</h1>
+  <h1>Meme Forge 🔥</h1>
 
-    <div class="main">
-      <div class="canvas-container">
-        <canvas id="c" width="500" height="500"></canvas>
-        <p id="captionDisplay" class="caption-output"></p>
-      </div>
-
-      <div class="controls">  <!-- for uploading mems (I hope they would be funny memes) -->
-        <label class="upload-btn">
-          Upload Image
-          <input type="file" id="imgInput" hidden>
-        </label>
-
-        <input type="text" id="textInput" placeholder="Add meme text...">  <!-- adding the text as a caption (It took a lot to make it as a caption) -->
-        <button id="addText"> Add Text</button>
-
-        <button id="submitMeme"> Submit Meme to Gallery</button> <!-- submitting the meme -->
-        <p id="submitMessage" class="success-message" style="display: none;"></p>
-
-
-        <a href="gallery.html" class="nav-link"> View Meme Gallery</a>
-
-        <button id="clearCanvas"> Clear</button>
-
-        <div class="vote-display">
-           Votes: <span id="voteCount">0</span>
-        </div>
-      </div>
-    </div>
+  <div class="controls">
+    <input type="file" id="imageUpload" accept="image/*">
+    <input type="text" id="captionInput" placeholder="Write a caption...">
+    <button id="addCaption">Add Caption</button>
+    <button id="clearCanvas">Clear Canvas</button>
+    <button id="voteButton">Vote</button>
+    <div id="voteCount">Votes: 0</div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+  <canvas id="c" width="800" height="600"></canvas>
+
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <script src="client.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.6.0/fabric.min.js"></script>
+  <script src="/client.js"></script>
 </body>
 </html>
-
