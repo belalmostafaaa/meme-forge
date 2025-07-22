@@ -1,21 +1,40 @@
-const socket = io(window.location.origin);
+const socket = io();
 const canvas = new fabric.Canvas('c', { backgroundColor: '#000' });
 
 let voteCount = 0;
 let captionText = '';
 
+// 🔄 Sync canvas state to server
 function syncCanvas() {
   const json = canvas.toJSON();
   socket.emit('canvas:update', json);
 }
 
+// 📤 Send updates to server on object changes
 canvas.on('object:added', syncCanvas);
 canvas.on('object:modified', syncCanvas);
+canvas.on('object:removed', syncCanvas);
 
+// 📥 Receive canvas updates from server
 socket.on('canvas:update', (data) => {
-  canvas.loadFromJSON(data, canvas.renderAll.bind(canvas));
+  canvas.loadFromJSON(data, () => {
+    canvas.renderAll();
+  });
 });
 
+// ✏️ Add text caption
+document.getElementById('addCaption').addEventListener('click', () => {
+  const caption = new fabric.Textbox(captionText || 'Enter your caption', {
+    left: 50,
+    top: 50,
+    fill: '#fff',
+    fontSize: 24,
+  });
+  canvas.add(caption);
+  syncCanvas();
+});
+
+// 🖼️ Handle image upload as base64
 document.getElementById('imageUpload').addEventListener('change', function (e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -28,63 +47,31 @@ document.getElementById('imageUpload').addEventListener('change', function (e) {
         left: 100,
         top: 100,
         scaleX: 0.5,
-        scaleY: 0.5
+        scaleY: 0.5,
       });
       canvas.add(img);
       canvas.renderAll();
-      syncCanvas(); // Ensure update is broadcasted
+      syncCanvas();
     });
   };
 
-  reader.readAsDataURL(file); // 🔥 This converts the image to base64
+  reader.readAsDataURL(file); // 🔁 Convert image to base64
 });
 
-
-
-document.getElementById('addText').onclick = () => {
-  const textValue = document.getElementById('textInput').value;
-  if (!textValue.trim()) return;
-  captionText = textValue;
-  document.getElementById('captionDisplay').innerText = captionText;
-  document.getElementById('textInput').value = '';
-};
-
-
-document.getElementById('submitMeme').onclick = () => {
-  const canvasJSON = canvas.toJSON(['src']);
-  const imageData = canvas.toDataURL({ format: 'png' });
-
-  socket.emit('meme:submit', {
-    json: canvasJSON,
-    image: imageData,
-    caption: captionText  
-  });
-
-  const messageEl = document.getElementById('submitMessage');
-messageEl.textContent = ' Meme submitted! You can view it in the gallery.';
-messageEl.style.display = 'block';
-
-setTimeout(() => {
-  messageEl.style.display = 'none';
-}, 4000);
-
-};
-
-
-document.getElementById('clearCanvas').onclick = () => {
-  canvas.clear();
-  canvas.backgroundColor = '#000';
+// 🧽 Clear canvas (local + sync)
+document.getElementById('clearCanvas').addEventListener('click', () => {
+  canvas.clear().setBackgroundColor('#000', canvas.renderAll.bind(canvas));
   syncCanvas();
-  voteCount = 0;
-  captionText = '';
-  document.getElementById('voteCount').innerText = voteCount;
-  document.getElementById('captionDisplay').innerText = '';
-};
+});
 
-document.getElementById('saveMeme')?.addEventListener('click', () => {
-  const dataURL = canvas.toDataURL({ format: 'png' });
-  const link = document.createElement('a');
-  link.href = dataURL;
-  link.download = 'meme.png';
-  link.click();
+// 🗳️ Voting (just a counter example, you can improve this logic)
+document.getElementById('voteButton').addEventListener('click', () => {
+  voteCount++;
+  document.getElementById('voteCount').textContent = `Votes: ${voteCount}`;
+  // You can sync voteCount via socket too if needed
+});
+
+// 📝 Optional: Listen for caption text input
+document.getElementById('captionInput').addEventListener('input', (e) => {
+  captionText = e.target.value;
 });
